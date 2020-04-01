@@ -68,11 +68,11 @@ class Particle {
         guard position.point.isInside(rect: rect) else {
             return
         }
-//        context.setStrokeColor(.white)
-//        context.setLineWidth(1.5)
-//        context.move(to: position.point)
-//        context.addLine(to: previousPosition.point)
-//        context.strokePath()
+        context.setStrokeColor(.white)
+        context.setLineWidth(1.5)
+        context.move(to: position.point)
+        context.addLine(to: previousPosition.point)
+        context.strokePath()
         
         lines.append(currentLine())
     }

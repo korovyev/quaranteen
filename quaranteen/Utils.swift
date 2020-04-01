@@ -35,43 +35,6 @@ extension CGVector {
     }
 }
 
-/// Extension to collect CGPath points
-extension CGPath {
-
-  /// this is a computed property, it will hold the points we want to extract
-  var points: [CGPoint] {
-
-     /// this is a local transient container where we will store our CGPoints
-     var arrPoints: [CGPoint] = []
-
-     // applyWithBlock lets us examine each element of the CGPath, and decide what to do
-     self.applyWithBlock { element in
-
-        switch element.pointee.type
-        {
-        case .moveToPoint, .addLineToPoint:
-          arrPoints.append(element.pointee.points.pointee)
-
-        case .addQuadCurveToPoint:
-          arrPoints.append(element.pointee.points.pointee)
-          arrPoints.append(element.pointee.points.advanced(by: 1).pointee)
-
-        case .addCurveToPoint:
-          arrPoints.append(element.pointee.points.pointee)
-          arrPoints.append(element.pointee.points.advanced(by: 1).pointee)
-          arrPoints.append(element.pointee.points.advanced(by: 2).pointee)
-
-        default:
-          break
-        }
-     }
-
-    // We are now done collecting our CGPoints and so we can return the result
-    return arrPoints
-
-  }
-}
-
 struct SeededRandomNumberGenerator : RandomNumberGenerator {
     // https://stackoverflow.com/a/57370987
     mutating func next() -> UInt64 {
