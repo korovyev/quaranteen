@@ -1,6 +1,8 @@
-#  Readme - something to keep me amused during coronavirus
+#  Readme
 
 A Vector Flow Field generator, applying Perlin Noise
+
+Something to keep me amused during coronavirus :)
 
 Outputs an image of the flow, along with a json file specifying the parameters, and a .txt file that I use for sending the drawing to my plotter
 
@@ -13,3 +15,9 @@ https://github.com/wltrup
 
 https://www.youtube.com/watch?v=BjoM9oKOAKY
 
+eg:
+
+![Image](examples/image.png "Image")
+
+
+![Image 2](examples/image 2.png "Image2")

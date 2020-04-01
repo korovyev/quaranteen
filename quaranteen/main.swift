@@ -8,121 +8,21 @@
 
 import Foundation
 import CoreGraphics
+import ArgumentParser
 
-let args = CommandLine.arguments
-let destinationURL = URL(fileURLWithPath: args[1])
-let seed: UInt64 = UInt64.random(in: 0..<UInt64.max)
-let fileWriter = FileWriter(seed: seed, path: destinationURL)
-var randomNumbers = SeededRandomNumberGenerator(seed: seed)
-
-print("Seed: \(seed)")
-
-let size = CGSize(width: 1000, height: 1000)
-let rect = CGRect.init(origin: .init(x: 0, y: 0), size: size)
-
-let colorSpace = CGColorSpaceCreateDeviceRGB()
-let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
-guard let context = CGContext(
-    data: nil,
-    width: Int(size.width),
-    height: Int(size.height),
-    bitsPerComponent: 8,
-    bytesPerRow: 0,
-    space: colorSpace,
-    bitmapInfo: bitmapInfo.rawValue) else {
-        fatalError()
-}
-
-context.setFillColor(.black)
-context.fill(rect)
-
-let parameters = Parameters(
-    particleCount: 5000,
-    particleLoops: 1,
-    maxVelocity: 10,
-    columns: 100,
-    rows: 100,
-    vectorFieldMagnitude: 8
-)
-
-print("Building Perlin Noise")
-
-let perlinNoise = PerlinNoise(width: parameters.columns, height: parameters.rows, randomNumberGenerator: &randomNumbers)
-
-print("Building Vector Field")
-
-let vectorField = VectorField(size: size, columns: parameters.columns, rows: parameters.rows)
-vectorField.build()
-
-print("Applying noise to vector field")
-
-vectorField.applyNoise(noise: perlinNoise)
-//vectorField.draw(in: context)
-
-let forceField = vectorField.buildForces(magnitude: parameters.vectorFieldMagnitude)
-
-print("Creating \(parameters.particleCount) particles")
-
-var particles = [Particle]()
-
-for _ in 0..<parameters.particleCount {
-    let start = CGPoint.init(in: rect, generator: &randomNumbers)
-    let velocity = CGPoint.zero
+struct Quaranteen: ParsableCommand {
+    static let configuration = CommandConfiguration(abstract: "Flowing Particles :)")
     
-    particles.append(Particle(start: start, velocity: velocity.vector, maxVelocity: parameters.maxVelocity))
-}
+    @Argument(help: "The filepath you want the output files to be created in")
+    var destinationPath: String
 
-print("Applying vector forces to particles, \(parameters.particleLoops) times")
-
-for _ in 0..<parameters.particleLoops {
-    particles.forEach { $0.draw(in: context) }
-    particles.forEach { p in
-        
-        let position = p.position.point
-        let columnWidth = size.width / CGFloat(parameters.columns)
-        let rowHeight = size.height / CGFloat(parameters.rows)
-        
-        let x = Int(floor(position.x / columnWidth))
-        let y = Int(floor(position.y / rowHeight))
-        
-        p.apply(force: forceField[max(0, x-1)][max(0, y-1)])
-    }
-    particles.forEach { $0.update() }
-    particles.forEach { $0.wrap(size: size) }
-}
-
-print("Moving particles until they hit the edge")
-
-particles.forEach { p in
-    p.wrapped = false
+    @Argument(default: UInt64.random(in: 0..<UInt64.max), help: "The seed used to reproduce previous random results.")
+    var seed: UInt64
     
-    while !p.wrapped {
-        p.draw(in: context)
-        let position = p.position.point
-        let columnWidth = size.width / CGFloat(parameters.columns)
-        let rowHeight = size.height / CGFloat(parameters.rows)
-        
-        let x = Int(floor(position.x / columnWidth))
-        let y = Int(floor(position.y / rowHeight))
-        
-        p.apply(force: forceField[max(0, x-1)][max(0, y-1)])
-        p.update()
-        p.wrap(size: size)
+    func run() {
+        let drawing = Drawing()
+        drawing.begin(with: destinationPath, seed: seed)
     }
 }
 
-var lines = [Line]()
-particles.forEach { p in
-    lines.append(contentsOf: p.lines)
-}
-
-let window = Window(rect: .init(origin: .init(x: 100, y: 100), size: .init(width: 100, height: 100)), lines: lines)
-let _ = window.clipped(context: context)
-
-print("Saving \(lines.count) lines to file")
-
-let image = context.makeImage()!
-
-fileWriter.save(lines: lines)
-fileWriter.save(image: image)
-fileWriter.save(parameters: parameters)
+Quaranteen.main()

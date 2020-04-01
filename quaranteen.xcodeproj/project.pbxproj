@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -20,6 +20,8 @@
 		32875217243102EC00CFE24B /* Parameters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32875216243102EC00CFE24B /* Parameters.swift */; };
 		3287521D243282C000CFE24B /* CGPoint+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3287521C243282C000CFE24B /* CGPoint+Extensions.swift */; };
 		3287521F2433E51C00CFE24B /* Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3287521E2433E51C00CFE24B /* Window.swift */; };
+		328752222434F39B00CFE24B /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 328752212434F39B00CFE24B /* ArgumentParser */; };
+		328752242434F6A900CFE24B /* Drawing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328752232434F6A900CFE24B /* Drawing.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -50,6 +52,7 @@
 		328752182432586D00CFE24B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		3287521C243282C000CFE24B /* CGPoint+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CGPoint+Extensions.swift"; sourceTree = "<group>"; };
 		3287521E2433E51C00CFE24B /* Window.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Window.swift; sourceTree = "<group>"; };
+		328752232434F6A900CFE24B /* Drawing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drawing.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				328752222434F39B00CFE24B /* ArgumentParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -93,6 +97,7 @@
 				328752142430D8B300CFE24B /* Utils.swift */,
 				32875216243102EC00CFE24B /* Parameters.swift */,
 				3287521E2433E51C00CFE24B /* Window.swift */,
+				328752232434F6A900CFE24B /* Drawing.swift */,
 			);
 			path = quaranteen;
 			sourceTree = "<group>";
@@ -125,6 +130,7 @@
 			);
 			name = quaranteen;
 			packageProductDependencies = (
+				328752212434F39B00CFE24B /* ArgumentParser */,
 			);
 			productName = quaranteen;
 			productReference = 326CEDCD2427F62800D719CE /* quaranteen */;
@@ -155,6 +161,7 @@
 			);
 			mainGroup = 326CEDC42427F62800D719CE;
 			packageReferences = (
+				328752202434F39A00CFE24B /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 			);
 			productRefGroup = 326CEDCE2427F62800D719CE /* Products */;
 			projectDirPath = "";
@@ -178,6 +185,7 @@
 				326CEDDD2428064700D719CE /* VectorField.swift in Sources */,
 				328752152430D8B300CFE24B /* Utils.swift in Sources */,
 				326CEDDF2428082400D719CE /* Primitive.swift in Sources */,
+				328752242434F6A900CFE24B /* Drawing.swift in Sources */,
 				328752132430D5BC00CFE24B /* FileWriter.swift in Sources */,
 				32875211242FD02C00CFE24B /* CGFloat+Extensions.swift in Sources */,
 				3287520F242FCFE700CFE24B /* WTCoreGraphicsExtensionsErrors.swift in Sources */,
@@ -348,6 +356,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		328752202434F39A00CFE24B /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-argument-parser.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.0.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		328752212434F39B00CFE24B /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 328752202434F39A00CFE24B /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 326CEDC52427F62800D719CE /* Project object */;
 }
