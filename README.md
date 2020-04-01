@@ -20,4 +20,4 @@ eg:
 ![Image](examples/image.png "Image")
 
 
-![Image 2](examples/image 2.png "Image2")
+![Image2](examples/image2.png "Image2")
