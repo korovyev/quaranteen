@@ -33,7 +33,7 @@ class Particle {
         velocity = velocity.magnitudeScaled(to: maxVelocity)!
         position += velocity
         acceleration *= 0
-        
+        lines.append(currentLine())
     }
     
     func apply(force: CGVector) {
@@ -61,20 +61,6 @@ class Particle {
             previousPosition = position
             wrapped = true
         }
-    }
-    
-    func draw(in context: CGContext) {
-        let rect = CGRect(origin: .zero, size: .init(width: context.width, height: context.height))
-        guard position.point.isInside(rect: rect) else {
-            return
-        }
-        context.setStrokeColor(.white)
-        context.setLineWidth(1.5)
-        context.move(to: position.point)
-        context.addLine(to: previousPosition.point)
-        context.strokePath()
-        
-        lines.append(currentLine())
     }
     
     func currentLine() -> Line {

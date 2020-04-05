@@ -29,6 +29,17 @@ extension CGPoint {
     }
 }
 
+extension CGRect {
+    var borders: [Line] {
+        [
+            Line(start: origin, end: .init(x: origin.x, y: origin.y + height)),
+            Line(start: origin, end: .init(x: origin.x + width, y: origin.y)),
+            Line(start: .init(x: origin.x, y: origin.y + height), end: .init(x: origin.x + width, y: origin.y + height)),
+            Line(start: .init(x: origin.x + width, y: origin.y), end: .init(x: origin.x + width, y: origin.y + height))
+        ]
+    }
+}
+
 extension CGVector {
     var point: CGPoint {
         .init(x: dx, y: dy)

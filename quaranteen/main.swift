@@ -20,8 +20,12 @@ struct Quaranteen: ParsableCommand {
     var seed: UInt64
     
     func run() {
-        let drawing = Drawing()
-        drawing.begin(with: destinationPath, seed: seed)
+        let drawing = Drawing(seed: seed,
+                              outputPath: destinationPath,
+                              rect: .init(origin: .init(x: 0, y: 0),
+                                          size: .init(width: 1000, height: 1200)))
+//        drawing.drawFlowField()
+        drawing.drawWindowedFlowField()
     }
 }
 

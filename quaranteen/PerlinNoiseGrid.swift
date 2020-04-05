@@ -13,10 +13,10 @@ class PerlinNoise {
     let noise: [[Float]]
     private let generator: SeededRandomNumberGenerator
     
-    init(width: Int, height: Int, randomNumberGenerator: inout SeededRandomNumberGenerator) {
+    init(width: Int, height: Int, noisePersistence: CGFloat, randomNumberGenerator: inout SeededRandomNumberGenerator) {
         let base = PerlinNoise.whiteNoise(width: width, height: height, generator: &randomNumberGenerator)
         self.generator = randomNumberGenerator
-        self.noise = PerlinNoise.generate(baseNoise: base, octaveCount: 8, width: width, height: height)
+        self.noise = PerlinNoise.generate(baseNoise: base, octaveCount: 8, noisePersistence: noisePersistence, width: width, height: height)
     }
     
     class func whiteNoise(width: Int, height: Int, generator: inout SeededRandomNumberGenerator) -> [[Float]] {
@@ -60,21 +60,20 @@ class PerlinNoise {
         return smoothed
     }
     
-    class func generate(baseNoise: [[Float]], octaveCount: Int, width: Int, height: Int) -> [[Float]] {
+    class func generate(baseNoise: [[Float]], octaveCount: Int, noisePersistence: CGFloat, width: Int, height: Int) -> [[Float]] {
         var smoothNoise = [[[Float]]](repeating: zeroesArray(width: width, height: height), count: octaveCount)
         
-        let persistence: Float = 0.7
         
         for i in 0..<octaveCount {
             smoothNoise[i] = self.smoothNoise(baseNoise: baseNoise, octave: i, width: width, height: height)
         }
         
         var perlinNoise = zeroesArray(width: width, height: height)
-        var amplitude: Float = 3.0
+        var amplitude: Float = 1.0
         var totalAmplitude: Float = 0.0
         
         for octave in (0..<octaveCount).reversed() {
-            amplitude = amplitude * persistence
+            amplitude = amplitude * Float(noisePersistence)
             totalAmplitude = totalAmplitude + amplitude
             
             for i in 0..<width {

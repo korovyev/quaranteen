@@ -9,45 +9,71 @@
 import Foundation
 
 
-struct Drawing {
-    func begin(with destinationPath: String, seed: UInt64) {
-
-        let destinationURL = URL(fileURLWithPath: destinationPath)
-        let fileWriter = FileWriter(seed: seed, path: destinationURL)
-        var randomNumbers = SeededRandomNumberGenerator(seed: seed)
-
-
-        let size = CGSize(width: 1000, height: 1000)
-        let rect = CGRect.init(origin: .init(x: 0, y: 0), size: size)
-
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
-        guard let context = CGContext(
-            data: nil,
-            width: Int(size.width),
-            height: Int(size.height),
-            bitsPerComponent: 8,
-            bytesPerRow: 0,
-            space: colorSpace,
-            bitmapInfo: bitmapInfo.rawValue) else {
-                fatalError()
-        }
-
-        context.setFillColor(.black)
-        context.fill(rect)
-
-        let parameters = Parameters(
-            particleCount: 5000,
-            particleLoops: 1,
-            maxVelocity: 10,
+class Drawing {
+    
+    var randomNumbers: SeededRandomNumberGenerator
+    let fileWriter: FileWriter
+    let rect: CGRect
+    let context: CGContext
+    let parameters: Parameters
+    var size: CGSize {
+        rect.size
+    }
+    
+    init(seed: UInt64, outputPath: String, rect: CGRect) {
+        randomNumbers = SeededRandomNumberGenerator(seed: seed)
+        fileWriter = FileWriter(seed: seed, path: URL(fileURLWithPath: outputPath))
+        self.rect = rect
+        self.context = Drawing.createContext(of: rect.size)
+        parameters = Parameters(
+            particleCount: 3000,
+            particleLoops: 2,
+            maxVelocity: 8,
             columns: 100,
             rows: 100,
-            vectorFieldMagnitude: 8
+            vectorFieldMagnitude: 6,
+            noisePersistence: 0.65
         )
+    }
+    
+    func drawFlowField() {
+        let lines = createFlowField()
+        fillBackground(color: .white)
+        draw(lines: lines, color: .black)
+        save(lines: lines)
+    }
+    
+    func drawWindowedFlowField() {
+        let size = CGSize(width: 100, height: 1000)
+        let windows = [
+            CGRect(origin: .init(x: 100, y: 100), size: size),
+            CGRect(origin: .init(x: 275, y: 100), size: size),
+            CGRect(origin: .init(x: 450, y: 100), size: size),
+            CGRect(origin: .init(x: 625, y: 100), size: size),
+            CGRect(origin: .init(x: 800, y: 100), size: size),
+        ]
+        
+        let lines = createFlowField()
+        var windowedLines = [Line]()
+        
+        windows.forEach { rect in
+            let window = Window(rect: rect, lines: lines)
+            windowedLines.append(contentsOf: window.clipped())
+        }
+        
+        windowedLines.append(contentsOf: rect.borders)
+        
+        fillBackground(color: .black)
+        //rgb(0.38,0.37,0.32)
+        draw(lines: windowedLines, color: CGColor(red: 0.38, green: 0.37, blue: 0.32, alpha: 1), lineWidth: 1)
+        save(lines: windowedLines)
+    }
+    
+    private func createFlowField() -> [Line] {
 
         print("Building Perlin Noise")
 
-        let perlinNoise = PerlinNoise(width: parameters.columns, height: parameters.rows, randomNumberGenerator: &randomNumbers)
+        let perlinNoise = PerlinNoise(width: parameters.columns, height: parameters.rows, noisePersistence: parameters.noisePersistence, randomNumberGenerator: &randomNumbers)
 
         print("Building Vector Field")
 
@@ -57,9 +83,7 @@ struct Drawing {
         print("Applying noise to vector field")
 
         vectorField.applyNoise(noise: perlinNoise)
-        //vectorField.draw(in: context)
-
-        let forceField = vectorField.buildForces(magnitude: parameters.vectorFieldMagnitude)
+        _ = vectorField.buildForces(magnitude: parameters.vectorFieldMagnitude)
 
         print("Creating \(parameters.particleCount) particles")
 
@@ -75,58 +99,83 @@ struct Drawing {
         print("Applying vector forces to particles, \(parameters.particleLoops) times")
 
         for _ in 0..<parameters.particleLoops {
-            particles.forEach { $0.draw(in: context) }
-            particles.forEach { p in
-                
-                let position = p.position.point
-                let columnWidth = size.width / CGFloat(parameters.columns)
-                let rowHeight = size.height / CGFloat(parameters.rows)
-                
-                let x = Int(floor(position.x / columnWidth))
-                let y = Int(floor(position.y / rowHeight))
-                
-                p.apply(force: forceField[max(0, x-1)][max(0, y-1)])
-            }
-            particles.forEach { $0.update() }
-            particles.forEach { $0.wrap(size: size) }
+            particles.forEach { update(particle: $0, field: vectorField) }
         }
 
         print("Moving particles until they hit the edge")
 
         particles.forEach { p in
             p.wrapped = false
-            
             while !p.wrapped {
-                p.draw(in: context)
-                let position = p.position.point
-                let columnWidth = size.width / CGFloat(parameters.columns)
-                let rowHeight = size.height / CGFloat(parameters.rows)
-                
-                let x = Int(floor(position.x / columnWidth))
-                let y = Int(floor(position.y / rowHeight))
-                
-                p.apply(force: forceField[max(0, x-1)][max(0, y-1)])
-                p.update()
-                p.wrap(size: size)
+                update(particle: p, field: vectorField)
             }
         }
+        return particles.flatMap { $0.lines }
+    }
+    
+    private func update(particle: Particle, field: VectorField) {
+        particle.apply(force: field.vector(at: particle.position.point))
+        particle.update()
+        particle.wrap(size: size)
+    }
+    
+    private func createWindow(lines: [Line], rect: CGRect) -> [Line] {
+        let window = Window(rect: rect, lines: lines)
+        return window.clipped()
+    }
+}
 
-        var lines = [Line]()
-        particles.forEach { p in
-            lines.append(contentsOf: p.lines)
+extension Drawing {
+    
+    func fillBackground(color: CGColor) {
+        context.setFillColor(color)
+        context.fill(rect)
+    }
+    
+    func draw(lines: [Line], color: CGColor, lineWidth: CGFloat = 1) {
+        
+        context.setStrokeColor(color)
+        context.setLineWidth(lineWidth)
+        
+        lines.forEach { line in
+            context.move(to: line.start)
+            context.addLine(to: line.end)
+            context.strokePath()
         }
-
-        let window = Window(rect: .init(origin: .init(x: 100, y: 100), size: .init(width: 100, height: 100)), lines: lines)
-        let _ = window.clipped(context: context)
-
-        print("Saving \(lines.count) lines to file")
-
+    }
+    
+    func draw(vectorField: VectorField, color: CGColor) {
+        vectorField.lines.forEach { col in
+            draw(lines: col, color: color)
+        }
+    }
+    
+    func save(lines: [Line]?) {
+        if let lines = lines {
+            print("Saving \(lines.count) lines to file")
+            fileWriter.save(lines: lines)
+        }
         let image = context.makeImage()!
-
-        fileWriter.save(lines: lines)
         fileWriter.save(image: image)
         fileWriter.save(parameters: parameters)
+    }
+}
 
+extension Drawing {
+    static func createContext(of size: CGSize) -> CGContext {
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+        guard let context = CGContext(
+            data: nil,
+            width: Int(size.width),
+            height: Int(size.height),
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: colorSpace,
+            bitmapInfo: bitmapInfo.rawValue) else {
+                fatalError()
+        }
+        return context
     }
 }
 

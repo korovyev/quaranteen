@@ -12,7 +12,8 @@ class VectorField {
     let size: CGSize
     private let columns: Int
     private let rows: Int
-    private var lines = [[Line]]()
+    private(set) var lines = [[Line]]()
+    private var forces = [[CGVector]]()
     
     init(size: CGSize, columns: Int, rows: Int) {
         self.size = size
@@ -72,19 +73,18 @@ class VectorField {
             vecCols.append(vecRows)
         }
         
+        self.forces = vecCols
         return vecCols
     }
     
-    func draw(in context: CGContext) {
-        context.setStrokeColor(.black)
-        context.setLineWidth(0.5)
+    func vector(at point: CGPoint) -> CGVector {
         
-        for column in lines {
-            for line in column {
-                context.move(to: line.start)
-                context.addLine(to: line.end)
-            }
-        }
-        context.strokePath()
+        let columnWidth = size.width / CGFloat(columns)
+        let rowHeight = size.height / CGFloat(rows)
+        
+        let x = Int(floor(point.x / columnWidth))
+        let y = Int(floor(point.y / rowHeight))
+        
+        return forces[max(0, x-1)][max(0, y-1)]
     }
 }

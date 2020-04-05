@@ -15,4 +15,5 @@ struct Parameters: Codable {
     let columns: Int
     let rows: Int
     let vectorFieldMagnitude: CGFloat
+    let noisePersistence: CGFloat
 }
